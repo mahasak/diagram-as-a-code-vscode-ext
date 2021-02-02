@@ -16,6 +16,17 @@ export function activate(context: vscode.ExtensionContext) {
 			{enableScripts: true}
 		);
 
+		const genDiagram = () => {
+			const proc = require('child_process')
+			proc.exec('pwd', (err: string, stdout: string, stderr: string) => {
+				console.log('stdout: ' + stdout);
+				console.log('stderr: ' + stderr);
+				if (err) {
+					console.log('error: ' + err);
+				}
+			});
+		}
+
 		const getContent = () => {
 			return `<!DOCTYPE html>
 			<html>
@@ -33,13 +44,21 @@ export function activate(context: vscode.ExtensionContext) {
 			const text = editor?.document.getText();
 			const cursor = editor?.document.offsetAt(editor.selection.anchor);
 
-
+			genDiagram();
 		}
+
+		vscode.workspace.onDidSaveTextDocument(
+			(e) => {
+				previewHandler();
+			},
+			null,
+			_disposables
+		);
 
 		vscode.workspace.onDidChangeTextDocument(
 			(e) => {
 				if (e.document === vscode.window.activeTextEditor?.document) {
-					previewHandler();
+					//previewHandler();
 				  }
 			},
 			null,
@@ -57,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
 		  vscode.window.onDidChangeTextEditorSelection(
 			(e) => {
 			  if (e.textEditor === vscode.window.activeTextEditor) {
-				previewHandler();
+				//previewHandler();
 			  }
 			},
 			null,
@@ -80,9 +99,9 @@ export function activate(context: vscode.ExtensionContext) {
 		  );
 	  
 		  panel.webview.html = getContent();
-	}
-	);
+	});
 	context.subscriptions.push(command);
+
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "diagramascodeviewer" is now active!');
