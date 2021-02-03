@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const editor = vscode.window.activeTextEditor;
 			const text = editor?.document.getText();
 			const cursor = editor?.document.offsetAt(editor.selection.anchor);
-
+			console.log(editor?.document.fileName)
 			genDiagram();
 		}
 
@@ -57,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.workspace.onDidChangeTextDocument(
 			(e) => {
+
 				if (e.document === vscode.window.activeTextEditor?.document) {
 					//previewHandler();
 				  }
