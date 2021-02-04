@@ -3,6 +3,14 @@
   "displayName": "DiagramAsCodeViewer",
   "description": "Preview Diagram As a Code in VSCode",
   "version": "0.0.1",
+  "publisher": "mahasak-pijittum",
+	"author": {
+		"name": "Mahasak Pijittum"
+  },
+  "repository": {
+   "url": "https://github.com/mahasak/diagram-as-a-code-vscode-ext.git",
+   "type": "git"
+  },
   "engines": {
     "vscode": "^1.52.0"
   },
