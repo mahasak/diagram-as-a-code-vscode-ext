@@ -4,14 +4,13 @@ from diagrams.aws.database import Redshift
 from diagrams.aws.integration import SQS
 from diagrams.aws.storage import S3
 
-with Diagram("xxx", show=False):
+with Diagram("sample", show=False):
     source = EKS("k8s source")
 
     with Cluster("Event Flows"):
         with Cluster("Event Workers"):
             workers = [ECS("worker1"),
-                       ECS("worker2"),
-                       ECS("worker3")]
+                       ECS("worker2")]
 
         queue = SQS("event queue")
 
