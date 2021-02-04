@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-
+import * as path from 'path';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -18,9 +18,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const genDiagram = () => {
 			const proc = require('child_process')
-			proc.exec('pwd', (err: string, stdout: string, stderr: string) => {
-				console.log('stdout: ' + stdout);
-				console.log('stderr: ' + stderr);
+			let full_path = vscode.window.activeTextEditor?.document.uri.path
+			let dir = path.dirname(full_path ?? "")
+			let filename2 = path.basename(full_path ?? "");
+			console.log()
+			const cmd = `cat ${full_path} | docker run -i --rm -v ${dir}/out:/out gtramontina/diagrams:0.18.0`
+			proc.exec(cmd, (err: string, stdout: string, stderr: string) => {
 				if (err) {
 					console.log('error: ' + err);
 				}
@@ -43,7 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
 			const editor = vscode.window.activeTextEditor;
 			const text = editor?.document.getText();
 			const cursor = editor?.document.offsetAt(editor.selection.anchor);
-			console.log(editor?.document.fileName)
+			let folderPath = vscode.window.activeTextEditor?.document.fileName;
+			console.log(folderPath)
 			genDiagram();
 		}
 
