@@ -2,6 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs'
+
+import { Selection, TextDocument, TextEditor } from 'vscode';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -13,16 +16,20 @@ export function activate(context: vscode.ExtensionContext) {
 		const panel = vscode.window.createWebviewPanel(
 			'diagramsPreview', 'Diagrams Preview',
 			vscode.ViewColumn.Two,
-			{enableScripts: true}
+			{
+				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media', 'out'))],
+				enableScripts: true
+			}
 		);
+
+		const getDiagramSource = () => vscode.window.activeTextEditor?.document.uri.path
 
 		const genDiagram = () => {
 			const proc = require('child_process')
-			let full_path = vscode.window.activeTextEditor?.document.uri.path
-			let dir = path.dirname(full_path ?? "")
-			let filename2 = path.basename(full_path ?? "");
-			console.log()
-			const cmd = `cat ${full_path} | docker run -i --rm -v ${dir}/out:/out gtramontina/diagrams:0.18.0`
+			const full_path = getDiagramSource()
+
+			const cmd = `cat ${full_path} | docker run -i --rm -v ${context.extensionPath}/media/out:/out gtramontina/diagrams:0.18.0`
+			console.log(cmd);
 			proc.exec(cmd, (err: string, stdout: string, stderr: string) => {
 				if (err) {
 					console.log('error: ' + err);
@@ -31,13 +38,16 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		const getContent = () => {
+			const full_path = getDiagramSource()
+			const dir = path.dirname(full_path ?? "")
+			const target = path.basename(full_path ?? "", ".py");
+			const target_file = path.join(dir, "out", `${target}.png`)
+			var data = fs.readFileSync(target_file).toString('base64');
+
 			return `<!DOCTYPE html>
 			<html>
-			  <head>
-				<base href="">
-			  </head>
 			  <body>
-				<div id="root">Test Preview</div>
+				<img src="data:image/png;base64, ${data}" >
 			  </body>
 			`
 		}
@@ -54,6 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.onDidSaveTextDocument(
 			(e) => {
 				previewHandler();
+				panel.webview.html = getContent();
 			},
 			null,
 			_disposables
@@ -64,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				if (e.document === vscode.window.activeTextEditor?.document) {
 					//previewHandler();
-				  }
+				}
 			},
 			null,
 			_disposables
@@ -72,38 +83,38 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.workspace.onDidChangeConfiguration(
 			(e) => {
-			  panel.webview.html = getContent();
+				panel.webview.html = getContent();
 			},
 			null,
 			_disposables
-		  );
-	  
-		  vscode.window.onDidChangeTextEditorSelection(
+		);
+
+		vscode.window.onDidChangeTextEditorSelection(
 			(e) => {
-			  if (e.textEditor === vscode.window.activeTextEditor) {
-				//previewHandler();
-			  }
+				if (e.textEditor === vscode.window.activeTextEditor) {
+					//previewHandler();
+				}
 			},
 			null,
 			_disposables
-		  );
-	  
-		  panel.onDidDispose(
+		);
+
+		panel.onDidDispose(
 			() => {
-			  console.log('panel closed');
-	  
-			  while (_disposables.length) {
-				const item = _disposables.pop();
-				if (item) {
-				  item.dispose();
+				console.log('panel closed');
+
+				while (_disposables.length) {
+					const item = _disposables.pop();
+					if (item) {
+						item.dispose();
+					}
 				}
-			  }
 			},
 			null,
 			context.subscriptions
-		  );
-	  
-		  panel.webview.html = getContent();
+		);
+
+		panel.webview.html = getContent();
 	});
 	context.subscriptions.push(command);
 
