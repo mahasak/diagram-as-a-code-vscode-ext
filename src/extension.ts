@@ -22,9 +22,9 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 
-		const getDiagramSource = () => vscode.window.activeTextEditor?.document.uri.path
+		const getDiagramSource = () => vscode.window.activeTextEditor?.document.uri.path ?? ""
 
-		const genDiagram = () => {
+		const  genDiagram = async () => {
 			const proc = require('child_process')
 			const full_path = getDiagramSource()
 
@@ -33,38 +33,36 @@ export function activate(context: vscode.ExtensionContext) {
 			proc.exec(cmd, (err: string, stdout: string, stderr: string) => {
 				if (err) {
 					console.log('error: ' + err);
-				}
+					return;
+				} 
+				panel.webview.html = getContent()
 			});
 		}
 
 		const getContent = () => {
 			const full_path = getDiagramSource()
-			const dir = path.dirname(full_path ?? "")
 			const target = path.basename(full_path ?? "", ".py");
-			const target_file = path.join(dir, "out", `${target}.png`)
+			const target_file = path.join(context.extensionPath, "media", "out", `${target}.png`)
 			var data = fs.readFileSync(target_file).toString('base64');
-
-			return `<!DOCTYPE html>
+			
+			const content = `<!DOCTYPE html>
 			<html>
 			  <body>
 				<img src="data:image/png;base64, ${data}" >
 			  </body>
 			`
-		}
-
-		const previewHandler = () => {
-			const editor = vscode.window.activeTextEditor;
-			const text = editor?.document.getText();
-			const cursor = editor?.document.offsetAt(editor.selection.anchor);
-			let folderPath = vscode.window.activeTextEditor?.document.fileName;
-			console.log(folderPath)
-			genDiagram();
+			console.log(content)
+			return content
 		}
 
 		vscode.workspace.onDidSaveTextDocument(
 			(e) => {
-				previewHandler();
-				panel.webview.html = getContent();
+				console.log("Source diagram changed");
+				if (e.fileName === vscode.window.activeTextEditor?.document.fileName) {
+					genDiagram();
+				} else {
+					console.log("Source diagram not matched");
+				}
 			},
 			null,
 			_disposables
@@ -83,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.workspace.onDidChangeConfiguration(
 			(e) => {
-				panel.webview.html = getContent();
+				//panel.webview.html = getContent();
 			},
 			null,
 			_disposables
@@ -113,8 +111,8 @@ export function activate(context: vscode.ExtensionContext) {
 			null,
 			context.subscriptions
 		);
-
-		panel.webview.html = getContent();
+		
+		genDiagram()
 	});
 	context.subscriptions.push(command);
 
