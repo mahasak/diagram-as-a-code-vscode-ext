@@ -22,11 +22,19 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 
+		const isValidFileExtension = () => path.extname(getDiagramSource()) === '.py';
+
 		const getDiagramSource = () => vscode.window.activeTextEditor?.document.uri.path ?? ""
 
 		const  genDiagram = async () => {
+			
+			if(!isValidFileExtension()) {
+				return
+			}
+			
 			const proc = require('child_process')
 			const full_path = getDiagramSource()
+			
 
 			const cmd = `cat ${full_path} | docker run -i --rm -v ${context.extensionPath}/media/out:/out gtramontina/diagrams:0.18.0`
 			console.log(cmd);
