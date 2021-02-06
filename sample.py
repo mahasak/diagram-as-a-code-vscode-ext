@@ -10,7 +10,8 @@ with Diagram("sample", show=False):
     with Cluster("Event Flows"):
         with Cluster("Event Workers"):
             workers = [ECS("worker1"),
-                       ECS("worker2")]
+                       ECS("worker2"),
+                       ECS("worker3")]
 
         queue = SQS("event queue")
 
